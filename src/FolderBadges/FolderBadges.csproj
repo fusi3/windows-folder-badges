@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,6 +6,29 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- The icon shown on the .exe in Explorer and in the tray -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
+
+    <!-- Shown in the .exe's Properties → Details. Bump Version for each GitHub release. -->
+    <Version>0.1.0</Version>
+    <Product>FolderBadges</Product>
+    <Description>Shows a red count badge on folder icons</Description>
+    <Copyright>Copyright (c) 2026 Fasih Munir</Copyright>
+  </PropertyGroup>
+
+  <!-- Release build settings, used by "dotnet publish -c Release".
+       Produces one FolderBadges.exe that runs without .NET installed. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- Packs everything into the one .exe (no loose .dll files next to it) -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- Makes the download much smaller; it unpacks in memory when started -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- No .pdb debugging file in the release folder -->
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
 </Project>

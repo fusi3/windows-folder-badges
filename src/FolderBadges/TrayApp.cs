@@ -150,12 +150,15 @@ public sealed class TrayApp : ApplicationContext
         base.ExitThreadCore();
     }
 
+    /// <summary>Uses the app's own icon (app.ico, built into the .exe) at tray size.</summary>
     static Icon LoadTrayIcon()
     {
         try
         {
-            string imageres = Path.Combine(Environment.SystemDirectory, "imageres.dll");
-            return Icon.ExtractIcon(imageres, -3, SystemInformation.SmallIconSize.Width) ?? SystemIcons.Application;
+            if (Environment.ProcessPath is string exe
+                && Icon.ExtractIcon(exe, 0, SystemInformation.SmallIconSize.Width) is Icon icon)
+                return icon;
+            return SystemIcons.Application;
         }
         catch
         {
