@@ -5,37 +5,16 @@ static class Program
     [STAThread]
     static void Main()
     {
-        ApplicationConfiguration.Initialize();
-
-        // TEMPORARY TEST
-        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-        string inbox = Path.Combine(desktop, "Inbox");
-
-        var rules = new CountRules
+        // Only allow one copy of the app to run at a time
+        using var mutex = new Mutex(true, @"Local\FolderBadges", out bool isFirstCopy);
+        if (!isFirstCopy)
         {
-            Depth = 1,
-            MergeFolders = { "Downloads" },   // un-comment if Downloads is a REAL folder inside Inbox, not a shortcut
-        };
+            MessageBox.Show("FolderBadges is already running. Look for it in the tray (bottom right).",
+                "FolderBadges");
+            return;
+        }
 
-        var timer = System.Diagnostics.Stopwatch.StartNew();
-        var result = new FileCounter(rules).Count(inbox);
-
-        string merged = result.MergedFolders.Count == 0
-            ? "   (none)"
-            : string.Join("\n", result.MergedFolders.Select(p => "   " + p));
-
-        string topTypes = string.Join("\n", result.ByExtension
-            .OrderByDescending(kv => kv.Value)
-            .Take(10)
-            .Select(kv => $"   {kv.Key}: {kv.Value}"));
-
-        MessageBox.Show(
-            $"{inbox}\n\n" +
-            $"BADGE NUMBER: {result.BadgeCount}\n\n" +
-            $"Files: {result.Files}\nFolders: {result.Folders}\nHidden: {result.Hidden}\n\n" +
-            $"Merged in:\n{merged}\n\n" +
-            $"Top file types:\n{topTypes}\n\n" +
-            $"({timer.ElapsedMilliseconds} ms)",
-            "FolderBadges test");
+        ApplicationConfiguration.Initialize();
+        Application.Run(new TrayApp());
     }
 }
