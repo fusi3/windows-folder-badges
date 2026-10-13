@@ -2,10 +2,6 @@
 
 A small Windows 11 tray app that puts a red **count badge** on folder icons, like the unread count on a phone app. (It may work on Windows 10, but I've only tested it on Windows 11.)
 
-<!-- Screenshot: the badged Inbox folder on the Desktop
-![A folder on the Desktop with a red badge showing 12](docs/images/badge.png)
--->
-
 ## Why I made this
 
 I made this for my own personal use. I keep a folder called **Inbox** on my Desktop, and everything new lands there first: loose files, and my Downloads folder, which lives inside it. The idea is that Inbox works like an actual inbox. Things arrive, and I sort them into their proper homes, which keeps my Desktop clean.
