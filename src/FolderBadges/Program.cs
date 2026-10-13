@@ -14,6 +14,11 @@ static class Program
             return;
         }
 
+        // If something goes badly wrong, write it to the log so there's a clue what happened
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (_, e) => Log.Write($"Unexpected error: {e.Exception}");
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Crash: {e.ExceptionObject}");
+
         ApplicationConfiguration.Initialize();
         Application.Run(new TrayApp());
     }

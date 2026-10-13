@@ -51,6 +51,8 @@ To update to a newer version, run the new download, open Settings and click **Sa
 - **Right-click** it to see each folder's count, refresh, open the log, or exit.
 - Always close the app with **right-click → Exit (removes badges)**. That puts every folder's original icon back. If the app is closed any other way (crash, Task Manager), the last badge stays on the folder until you start the app again.
 - If a badge looks out of date, press **F5** on the Desktop or in Explorer, or use **Refresh now** from the tray menu.
+- **Right-click → Remove all badges and exit…** puts the normal icon back on *every* folder FolderBadges has ever badged, including ones no longer in your list. It also deletes the badge images, then closes the app. Your settings are kept, so starting the app again brings your badges back. Use it before uninstalling, or if a badge is ever left behind.
+- When the app starts, it also removes any leftover badge from a folder that's no longer in your list.
 
 ## How counting works
 
@@ -86,15 +88,15 @@ Everything the app stores is in `%LOCALAPPDATA%\FolderBadges\`:
 ## Uninstall
 
 1. Open Settings, untick **Start FolderBadges when Windows starts**, and click **Save**.
-2. Right-click the tray icon and choose **Exit (removes badges)**. Your folders get their normal icons back.
+2. Right-click the tray icon and choose **Remove all badges and exit…**, then click **OK**. Every folder gets its normal icon back.
 3. Delete these folders:
    - `%LOCALAPPDATA%\Programs\FolderBadges` (the app, if you used Start with Windows)
-   - `%LOCALAPPDATA%\FolderBadges` (settings, log, icons and backups)
+   - `%LOCALAPPDATA%\FolderBadges` (settings, log, and anything left over)
 
    You can paste each path into the File Explorer address bar to open it.
 4. Delete the `.exe` you downloaded.
 
-Do step 2 before step 3: the `backups` folder is what the app uses to restore your original icons.
+Do step 2 before step 3: the `backups` folder is what the app uses to restore your original icons. If step 2 says a folder couldn't be found (for example it's on a drive that isn't plugged in), plug it in and do step 2 again before deleting anything.
 
 ## Building it yourself
 

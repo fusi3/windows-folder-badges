@@ -12,6 +12,8 @@
 
     <!-- Shown in the .exe's Properties → Details. Bump Version for each GitHub release. -->
     <Version>0.1.0</Version>
+    <!-- Show just "0.1.0", without the Git commit code .NET adds by default -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>FolderBadges</Product>
     <Description>Shows a red count badge on folder icons</Description>
     <Copyright>Copyright (c) 2026 Fasih Munir</Copyright>

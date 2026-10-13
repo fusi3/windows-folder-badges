@@ -93,6 +93,70 @@ public static class FolderIcon
         NotifyExplorer(folder);
     }
 
+    /// <summary>What happened when cleaning up: how many folders got their icon back, and which couldn't.</summary>
+    public record CleanupResult(int Restored, List<string> NotFound, List<string> Failed)
+    {
+        public bool AllClear => NotFound.Count == 0 && Failed.Count == 0;
+    }
+
+    /// <summary>
+    /// Puts the original icon back on every folder this app has ever badged, using the backups folder,
+    /// so it also catches folders that are no longer in the settings list.
+    /// Folders in <paramref name="keep"/> are left alone.
+    /// </summary>
+    public static CleanupResult RemoveAllBadges(IEnumerable<string>? keep = null)
+    {
+        var keepBackups = (keep ?? Enumerable.Empty<string>())
+            .Select(BackupPathFor)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        int restored = 0;
+        var notFound = new List<string>();
+        var failed = new List<string>();
+
+        if (!Directory.Exists(BackupDir))
+            return new CleanupResult(0, notFound, failed);
+
+        foreach (string backupPath in Directory.GetFiles(BackupDir, "*.json"))
+        {
+            if (keepBackups.Contains(backupPath))
+                continue;
+
+            string? folder = null;
+            try
+            {
+                folder = JsonSerializer.Deserialize<Backup>(File.ReadAllText(backupPath))?.Folder;
+                if (string.IsNullOrEmpty(folder))
+                {
+                    failed.Add(Path.GetFileName(backupPath));
+                    continue;
+                }
+
+                // The folder may have been moved, deleted, or be on a drive that's unplugged.
+                // Keep its backup in case it comes back.
+                if (!Directory.Exists(folder))
+                {
+                    notFound.Add(folder);
+                    continue;
+                }
+
+                RemoveBadge(folder); // restores the folder and deletes its backup
+
+                if (File.Exists(backupPath))
+                    failed.Add(folder); // backup still there, so it wasn't restored
+                else
+                    restored++;
+            }
+            catch (Exception ex)
+            {
+                Log.Write($"Could not restore {folder ?? backupPath}: {ex.Message}");
+                failed.Add(folder ?? Path.GetFileName(backupPath));
+            }
+        }
+
+        return new CleanupResult(restored, notFound, failed);
+    }
+
     static void SaveBackupIfNeeded(string folder)
     {
         string backupPath = BackupPathFor(folder);

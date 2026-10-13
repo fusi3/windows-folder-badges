@@ -44,6 +44,20 @@ public static class BadgeIcon
         return path;
     }
 
+    /// <summary>Deletes all the badge images. Only call this once no folder is using them.</summary>
+    public static void DeleteAll()
+    {
+        if (!Directory.Exists(IconDir))
+            return;
+
+        foreach (string file in Directory.GetFiles(IconDir, "*.ico"))
+        {
+            try { File.Delete(file); }
+            catch (Exception ex) { Log.Write($"Could not delete {file}: {ex.Message}"); }
+        }
+        Log.Write("Badge images deleted");
+    }
+
     static Bitmap DrawFrame(int size, string text)
     {
         var bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb);

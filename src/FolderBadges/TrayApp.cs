@@ -31,8 +31,9 @@ public sealed class TrayApp : ApplicationContext
             e.Cancel = false;
         };
 
+        Log.Write($"FolderBadges {Application.ProductVersion} started");
+        RemoveLeftoverBadges();
         StartWatchers();
-        Log.Write("FolderBadges started");
 
         if (settings.Folders.Count == 0)
             ShowSettings(); // first run with nothing set up
@@ -64,6 +65,74 @@ public sealed class TrayApp : ApplicationContext
             }
         }
         watchers.Clear();
+    }
+
+    /// <summary>
+    /// A folder can be left with an old badge if it was removed from the list while the app wasn't running.
+    /// On startup, put the normal icon back on any badged folder that isn't in the list (or is unticked).
+    /// </summary>
+    void RemoveLeftoverBadges()
+    {
+        try
+        {
+            FolderIcon.RemoveAllBadges(keep: settings.Folders.Where(f => f.Enabled).Select(f => f.FolderPath));
+        }
+        catch (Exception ex)
+        {
+            Log.Write($"Checking for leftover badges failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>Tray menu → "Remove all badges and exit": a full clean-up, also useful before uninstalling.</summary>
+    void RemoveAllBadgesAndExit()
+    {
+        var answer = MessageBox.Show(
+            "This puts the normal icon back on every folder FolderBadges has ever badged, " +
+            "deletes the badge images, and closes the app.\n\n" +
+            "Your files and your settings aren't touched. Start FolderBadges again to bring the badges back.",
+            "Remove all badges", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+        if (answer != DialogResult.OK)
+            return;
+
+        settingsForm?.Close();
+        StopWatchers(removeBadges: false); // stop first, so nothing puts a badge back while we clean up
+
+        FolderIcon.CleanupResult result;
+        try
+        {
+            result = FolderIcon.RemoveAllBadges();
+        }
+        catch (Exception ex)
+        {
+            Log.Write($"Remove all badges failed: {ex.Message}");
+            MessageBox.Show("Something went wrong: " + ex.Message, "Remove all badges");
+            ExitThread();
+            return;
+        }
+
+        Log.Write($"Remove all badges: {result.Restored} restored, {result.NotFound.Count} not found, {result.Failed.Count} failed");
+
+        if (result.AllClear)
+        {
+            BadgeIcon.DeleteAll(); // no folder uses them any more
+        }
+        else
+        {
+            // Keep the images, because folders we couldn't restore may still be showing them
+            var lines = new List<string>();
+            if (result.NotFound.Count > 0)
+                lines.Add("These folders couldn't be found (moved, deleted, or on a drive that isn't plugged in). " +
+                          "Their backups are kept, so running this again later will fix them:\n" +
+                          string.Join("\n", result.NotFound));
+            if (result.Failed.Count > 0)
+                lines.Add("These couldn't be restored (see the log for details):\n" + string.Join("\n", result.Failed));
+
+            MessageBox.Show(
+                $"{result.Restored} folder(s) restored.\n\n" + string.Join("\n\n", lines),
+                "Remove all badges", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        ExitThread();
     }
 
     /// <summary>Called when Save is clicked in the settings window.</summary>
@@ -134,7 +203,9 @@ public sealed class TrayApp : ApplicationContext
         menu.Items.Add("Refresh now", null, (_, _) => watchers.ForEach(w => w.ForceRefresh()));
         menu.Items.Add("Open log", null, (_, _) => OpenPath(Log.FilePath));
         menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add("Remove all badges and exit…", null, (_, _) => RemoveAllBadgesAndExit());
         menu.Items.Add("Exit (removes badges)", null, (_, _) => ExitThread());
+        menu.Items.Add(new ToolStripMenuItem($"FolderBadges {Application.ProductVersion}") { Enabled = false });
     }
 
     protected override void ExitThreadCore()
