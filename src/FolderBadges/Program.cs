@@ -2,15 +2,21 @@ namespace FolderBadges;
 
 static class Program
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
     [STAThread]
     static void Main()
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
-        Application.Run(new Form1());
-    }    
+
+        // TEMPORARY TEST: count the Inbox folder on the Desktop
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        string inbox = Path.Combine(desktop, "Inbox");
+
+        var counter = new FileCounter();
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        int count = counter.Count(inbox);
+
+        MessageBox.Show(
+            $"{inbox}\n\n{count} items\n(counted in {timer.ElapsedMilliseconds} ms)",
+            "FolderBadges test");
+    }
 }
