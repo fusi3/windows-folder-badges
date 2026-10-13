@@ -17,18 +17,23 @@
     <Copyright>Copyright (c) 2026 Fasih Munir</Copyright>
   </PropertyGroup>
 
-  <!-- Release build settings, used by "dotnet publish -c Release".
-       Produces one FolderBadges.exe that runs without .NET installed. -->
+  <!-- Release build settings, used by "dotnet publish -c Release" (build-release.ps1 runs it for you).
+       Produces one FolderBadges.exe with no loose .dll files next to it. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <!-- Packs everything into the one .exe (no loose .dll files next to it) -->
+    <!-- true = .NET is packed inside the .exe, so it runs on any Windows PC (big file).
+         Pass -p:SelfContained=false for a small .exe that needs the .NET 10 Desktop Runtime installed. -->
+    <SelfContained Condition="'$(SelfContained)' == ''">true</SelfContained>
+    <!-- Packs everything into the one .exe -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <!-- Makes the download much smaller; it unpacks in memory when started -->
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <!-- No .pdb debugging file in the release folder -->
     <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <!-- Makes the big .exe much smaller; it unpacks in memory when started (only works with .NET packed inside) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(SelfContained)' == 'true'">
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
 </Project>

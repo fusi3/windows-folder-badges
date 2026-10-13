@@ -426,3 +426,6 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Release builds made by build-release.ps1 (uploaded to GitHub Releases, not committed)
+dist/

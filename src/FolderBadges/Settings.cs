@@ -78,12 +78,39 @@ public static class StartupSetting
         }
     }
 
+    /// <summary>Where the app keeps its own copy so it can start with Windows,
+    /// e.g. C:\Users\you\AppData\Local\Programs\FolderBadges\FolderBadges.exe</summary>
+    public static readonly string InstalledExe = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Programs", "FolderBadges", "FolderBadges.exe");
+
     public static void Set(bool enabled)
     {
         using var key = Registry.CurrentUser.CreateSubKey(RunKey);
         if (enabled && Environment.ProcessPath is string exe)
-            key.SetValue(ValueName, $"\"{exe}\"");
+            key.SetValue(ValueName, $"\"{CopyToInstallFolder(exe)}\"");
         else
             key.DeleteValue(ValueName, throwOnMissingValue: false);
+    }
+
+    /// <summary>
+    /// People often run the downloaded .exe straight from their Downloads folder and may delete it later.
+    /// So before registering it to start with Windows, copy it to a permanent folder and use that copy.
+    /// Running a newer download and saving settings again also updates the copy.
+    /// </summary>
+    static string CopyToInstallFolder(string exe)
+    {
+        if (exe.Equals(InstalledExe, StringComparison.OrdinalIgnoreCase))
+            return exe; // already running from the permanent copy
+
+        // A development build (dotnet run / dotnet build) needs the FolderBadges.dll next to it,
+        // so copying only the .exe wouldn't work. Use it where it is.
+        if (File.Exists(Path.ChangeExtension(exe, ".dll")))
+            return exe;
+
+        Directory.CreateDirectory(Path.GetDirectoryName(InstalledExe)!);
+        File.Copy(exe, InstalledExe, overwrite: true);
+        Log.Write($"Copied app to {InstalledExe} for start with Windows");
+        return InstalledExe;
     }
 }
